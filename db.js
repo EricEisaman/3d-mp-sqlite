@@ -12,10 +12,13 @@ if(!exists){
     db.run("INSERT INTO Users VALUES (?,?,?,?)",[uuidv4(),"admin",process.env.ADMIN_KEY,0],err=>{});
   }); 
 }
+db.serialize(function(){
+  db.run("UPDATE Users SET isPlaying=0");
+}); 
 db.serialize(function() { 
   db.each("SELECT * FROM Users", function(err, row) {
-        console.log(`User id: ${row.id}   name: ${row.name}  pw: ${row.pw} isPlaying: ${row.isPlaying}`);
+    console.log(`User id: ${row.id}   name: ${row.name}  pw: ${row.pw} isPlaying: ${row.isPlaying}`);  
   });
-});    
+});  
 module.exports = db;   
    

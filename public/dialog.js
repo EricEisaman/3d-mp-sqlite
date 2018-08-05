@@ -3,9 +3,8 @@ window.dialog = {
     window.dialog.button = document.getElementById('submit-message');
     window.dialog.submit =()=>{
       let msg = document.getElementById('msg').value;
-      let key = document.getElementById('key').value;
       document.getElementById('msg').value = '';
-      if(window.socket.isInitialized) window.socket.emit('msg',{key:key,msg:msg});
+      if(window.socket.isInitialized) window.socket.emit('msg',{msg:msg});
     }
     window.dialog.ui = document.getElementById('dialog');
     window.dialog.isShowing = false;
@@ -31,8 +30,7 @@ window.dialog = {
           }
         }
       }else if(e.keyCode == 13 && window.dialog.isShowing 
-               && document.getElementById('msg').value.length > 0 
-               && document.getElementById('key').value.length > 0){
+               && document.getElementById('msg').value.length > 0){
         window.dialog.submit();
         window.dialog.ui.close();
         window.dialog.isShowing = false;
