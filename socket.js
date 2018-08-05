@@ -9,7 +9,7 @@ module.exports = (io)=>{
         socket.ip = socket.handshake.headers['x-forwarded-for'];
         //Uncomment second part below if storing to Firebase
         socket.ip = socket.ip.split(',')[0]//.replace(/\./g, "_");
-        console.log(`New connection with socket id: ${socket.id} and ip: ${socket.ip}`);
+        console.log(`New connection with socket id: ${socket.id}.`);
         socket.auth = false;
         socket.on('new-player',function(shared_state_data){ 
           if(!socket.auth)return;
@@ -22,7 +22,7 @@ module.exports = (io)=>{
           players[socket.id] = shared_state_data;
           let id = socket.id; 
           io.emit('new-player',{"id":id,"name":socket.name,"data":shared_state_data});
-        }) 
+        })  
         socket.on('disconnect',function(){
           // Delete from object on disconnect
           if(socket.auth){
@@ -45,26 +45,27 @@ module.exports = (io)=>{
           //console.log(data);
         })  
         socket.on('msg',function(data){
-          if(data.key == process.env.MESSAGE_KEY){
+          if(socket.auth){
             socket.broadcast.emit('msg',{id:socket.id,msg:data.msg});
           }
         });
         socket.on('arg',function(data){
           socket.ipLocal = data;
-          console.log(`Client Info:\nPublic IP: ${socket.ip}  Local IP: ${socket.ipLocal}`);
+          //console.log(`Client Info:\nPublic IP: ${socket.ip}  Local IP: ${socket.ipLocal}`);
         }); 
         socket.on('login',function(data){
           console.log(`User attempting to login with name: ${data.name} and password: ${data.pw}`);
           db.serialize(function() {  
           db.get("SELECT * FROM Users WHERE pw=? AND name=?",[data.pw,data.name], function(err, username) {
               if(username){
+               if(username.isPlaying) {
+                 socket.emit('login-results',{success:false,name:"cheater",msg:"You are already logged in!"});
+                 console.log(`${username.name} has provided valid login credentials but is already playing. :(`);
+                 return;
+               }
                console.log(`${username.name} has provided valid login credentials.`);
                socket.auth = true;
                socket.name = data.name;
-               if(username.isPlaying) {
-                 socket.emit('login-results',{success:false,name:"cheater",msg:"You are already logged in!"});
-                 return;
-               }
                db.serialize(function() {
                  db.run("UPDATE Users SET isPlaying = 1 WHERE id = ?",username.id);
                });
